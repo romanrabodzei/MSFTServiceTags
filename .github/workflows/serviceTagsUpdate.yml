@@ -25,7 +25,6 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Update Service Tags
-      shell: pwsh
       run: |
         $Date = Get-Date -Format FileDate
         Write-Host "Downloading Service Tags..."
@@ -37,27 +36,17 @@ jobs:
         Write-Host "Service Tags downloaded."
 
     - name: Checking for changes
-      shell: pwsh
       run: |
         $status = git diff
-        if ($null -eq $status) {
-          echo "changes=false" >> $GITHUB_ENV
-        } else {
-          echo "changes=true" >> $GITHUB_ENV
+        if ($null -ne $status) {
+          Write-Host "The following changes have been made to the files...`n"
+          git diff
         }
-
-    - name: Use changes variable
-      shell: pwsh
-      run: |
-        if ("${{ env.changes }}" -eq "true") {
-          Write-Host "There are changes."
-        } else {
-          Write-Host "There are no changes."
+        else {
+          Write-host "There are no changes."
         }
 
     - name: Commit and push changes
-      if: env.changes == 'true'
-      shell: pwsh
       run: |
         git config --global user.name  "Roman Rabodzei"
         git config --global user.email "Roman.Rabodzei@icloud.com"
