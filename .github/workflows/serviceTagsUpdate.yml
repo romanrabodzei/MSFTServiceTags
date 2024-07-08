@@ -40,12 +40,13 @@ jobs:
         $status = git diff
         if ($null -ne $status) {
           Write-Host "The following changes have been made to the files...`n$status"
-          echo "changes=true" >> $GITHUB_ENV
+          Write-Output "changes=true" >> $GITHUB_ENV
         }
         else {
           Write-host "There are no changes."
-          echo "changes=false" >> $GITHUB_ENV
+          Write-Output "changes=false" >> $GITHUB_ENV
         }
+        Write-Output "Changes variable set to: $env:changes"
 
     - name: Commit and push changes
       if: env.changes == 'true'
