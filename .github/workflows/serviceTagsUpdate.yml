@@ -1,6 +1,7 @@
 name: Service Tags Update
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0'
 
@@ -11,27 +12,34 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set git config
-      run: |
-        git config --global user.name  "Roman Rabodzei"
-        git config --global user.email "Roman.Rabodzei@icloud.com"
-
     - name: Update Service Tags
       run: |
         $Date = Get-Date -Format FileDate
 
+        Write-Host "Downloading Service Tags...`n"
         $publicRawHtml = Invoke-RestMethod -Uri 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519' -UseBasicParsing
         Invoke-WebRequest ([Regex]::Match($publicRawHtml, 'https://download.microsoft.com[^"]*').Value) -OutFile .\ServiceTags_Public.json
 
         $govRawHtml = Invoke-RestMethod -Uri 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=57063' -UseBasicParsing
         Invoke-WebRequest ([Regex]::Match($govRawHtml, 'https://download.microsoft.com[^"]*').Value) -OutFile .\ServiceTags_Gov.json
+        Write-Host "Service Tags downloaded."
 
     - name: Checking for changes
       run: |
-        git diff HEAD
+        $status = git diff
+        if ($null -ne $status) {
+          Write-Host "The following changes have been made to the files...`n"
+          git diff
+        }
+        else {
+          Write-Host ""
+          Write-host "There are no changes.`n"
+        }
 
     - name: Commit and push changes
       run: |
+        git config --global user.name  "Roman Rabodzei"
+        git config --global user.email "Roman.Rabodzei@icloud.com"
         git add .
         git commit -m "Service Tags Update $Date"
         git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" push
