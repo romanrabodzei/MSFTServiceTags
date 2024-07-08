@@ -27,8 +27,7 @@ jobs:
     - name: Update Service Tags
       run: |
         $Date = Get-Date -Format FileDate
-
-        Write-Host "Downloading Service Tags...`n"
+        Write-Host "Downloading Service Tags..."
         $publicRawHtml = Invoke-RestMethod -Uri 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519' -UseBasicParsing
         Invoke-WebRequest ([Regex]::Match($publicRawHtml, 'https://download.microsoft.com[^"]*').Value) -OutFile .\ServiceTags_Public.json
 
@@ -44,11 +43,11 @@ jobs:
           git diff
         }
         else {
-          Write-Host ""
-          Write-host "There are no changes.`n"
+          Write-host "There are no changes."
         }
 
     - name: Commit and push changes
+      if: $status -ne $null
       run: |
         git config --global user.name  "Roman Rabodzei"
         git config --global user.email "Roman.Rabodzei@icloud.com"
