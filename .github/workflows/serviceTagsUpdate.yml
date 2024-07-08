@@ -39,8 +39,8 @@ jobs:
     - name: Checking for changes
       shell: pwsh
       run: |
-        git diff --quiet
-        if ($?) {
+        $status = git diff
+        if ($null -eq $status) {
           echo "changes=false" >> $GITHUB_ENV
         } else {
           echo "changes=true" >> $GITHUB_ENV
