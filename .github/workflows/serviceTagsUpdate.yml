@@ -39,15 +39,16 @@ jobs:
       run: |
         $status = git diff
         if ($null -ne $status) {
-          Write-Host "The following changes have been made to the files...`n"
-          git diff
+          Write-Host "The following changes have been made to the files...`n$status"
+          echo "changes=true" >> $GITHUB_ENV
         }
         else {
           Write-host "There are no changes."
+          echo "changes=false" >> $GITHUB_ENV
         }
 
     - name: Commit and push changes
-      if: $status -ne $null
+      if: env.changes == 'true'
       run: |
         git config --global user.name  "Roman Rabodzei"
         git config --global user.email "Roman.Rabodzei@icloud.com"
