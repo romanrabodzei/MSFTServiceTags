@@ -22,11 +22,15 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-    - name: Update Service Tags
+    # Downloading files from Microsoft for Public and Government Service Tags
+    - name: Downloading files from Microsoft
       run: |
-        $Date = Get-Date -Format FileDate
         Write-Host "Downloading Service Tags..."
         $publicRawHtml = Invoke-RestMethod -Uri 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519' -UseBasicParsing
         Invoke-WebRequest ([Regex]::Match($publicRawHtml, 'https://download.microsoft.com[^"]*').Value) -OutFile .\ServiceTags_Public.json
@@ -34,24 +38,26 @@ jobs:
         $govRawHtml = Invoke-RestMethod -Uri 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=57063' -UseBasicParsing
         Invoke-WebRequest ([Regex]::Match($govRawHtml, 'https://download.microsoft.com[^"]*').Value) -OutFile .\ServiceTags_Gov.json
         Write-Host "Service Tags downloaded."
+      shell: pwsh
 
-    - name: Checking for changes
+    # Checking/Committing changes to the repository
+    - name: Checking/Committing changes
       run: |
         $status = git diff
         if ($null -ne $status) {
           Write-Host "The following changes have been made to the files...`n"
           git diff
+
+          Write-Host "Committing and pushing changes..."
+          git config --global user.name  "Roman Rabodzei"
+          git config --global user.email "Roman.Rabodzei@icloud.com"
+          git add .
+          git commit -m "Service Tags Update $(Get-Date -Format yyyMMddHHmm)"
+          git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" push
         }
         else {
           Write-host "There are no changes."
         }
-
-    - name: Commit and push changes
-      run: |
-        git config --global user.name  "Roman Rabodzei"
-        git config --global user.email "Roman.Rabodzei@icloud.com"
-        git add .
-        git commit -m "Service Tags Update $Date"
-        git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
