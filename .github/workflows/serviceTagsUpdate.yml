@@ -34,7 +34,6 @@ jobs:
         $govRawHtml = Invoke-RestMethod -Uri 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=57063' -UseBasicParsing
         Invoke-WebRequest ([Regex]::Match($govRawHtml, 'https://download.microsoft.com[^"]*').Value) -OutFile .\ServiceTags_Gov.json
         Write-Host "Service Tags downloaded."
-      shell: pwsh
 
     - name: Checking for changes
       run: |
@@ -42,7 +41,6 @@ jobs:
         if (-not $changes) {
           echo "changes=false" >> $GITHUB_ENV
         }
-      shell: pwsh
 
     - name: Use changes variable
       run: |
@@ -51,7 +49,6 @@ jobs:
         } else {
           Write-Host "There are no changes."
         }
-      shell: pwsh
 
     - name: Commit and push changes
       if: env.changes == 'true'
@@ -63,4 +60,3 @@ jobs:
         git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: pwsh
