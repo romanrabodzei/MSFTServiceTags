@@ -1,3 +1,15 @@
+# .Synopsis
+#     Downloading and updating Microsoft Service Tags IP ranges
+#
+# .NOTES
+#     Author     : Roman Rabodzei
+#     Version    : 1.0.240708
+#
+#             _
+#         .__(.)<  (MEOW)
+#          \___)
+#  ~~~~~~~~~~~~~~~~~~~~~~~~
+
 name: Service Tags Update
 
 on:
