@@ -52,7 +52,7 @@ jobs:
           git config --global user.name  "Roman Rabodzei"
           git config --global user.email "Roman.Rabodzei@icloud.com"
           git add .
-          git commit -m "Service Tags Update $(Get-Date -Format yyyMMdd)"
+          git commit -m "Service Tags Update $(Get-Date -Format dd.MM.yyyy)"
           git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" push
         }
         else {
