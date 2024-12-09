@@ -32,11 +32,15 @@ jobs:
     - name: Downloading files from Microsoft
       run: |
         Write-Host "Downloading Service Tags..."
-        $publicRawHtml = Invoke-RestMethod -Uri 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519' -UseBasicParsing
-        Invoke-WebRequest ([Regex]::Match($publicRawHtml, 'https://download.microsoft.com[^"]*').Value) -OutFile .\ServiceTags_Public.json
+        $publicCloudPageUrl = "https://www.microsoft.com/en-us/download/details.aspx?id=56519"
+        $publicCloudDownloadPage = Invoke-WebRequest -Uri $publicCloudPageUrl -UseBasicParsing
+        $publicCloudDownloadUrl = $publicCloudDownloadPage.Links | Where-Object { $_.href -like "*ServiceTags*.json" } | Select-Object -ExpandProperty href
+        Invoke-WebRequest -Uri $publicCloudDownloadUrl -OutFile .\ServiceTags_Public.json -UseBasicParsing
 
-        $govRawHtml = Invoke-RestMethod -Uri 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=57063' -UseBasicParsing
-        Invoke-WebRequest ([Regex]::Match($govRawHtml, 'https://download.microsoft.com[^"]*').Value) -OutFile .\ServiceTags_Gov.json
+        $govCloudPageUrl = "https://www.microsoft.com/en-us/download/details.aspx?id=57063"
+        $govCloudDownloadPage = Invoke-WebRequest -Uri $govCloudPageUrl -UseBasicParsing
+        $govCloudDownloadUrl = $govCloudDownloadPage.Links | Where-Object { $_.href -like "*ServiceTags*.json" } | Select-Object -ExpandProperty href
+        Invoke-WebRequest -Uri $govCloudDownloadUrl -OutFile .\ServiceTags_Gov.json -UseBasicParsing
         Write-Host "Service Tags downloaded."
       shell: pwsh
 
