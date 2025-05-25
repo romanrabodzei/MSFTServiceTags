@@ -32,18 +32,17 @@ jobs:
       - name: Downloading files from Microsoft
         run: |
           Write-Host "Downloading Service Tags..."
-          $publicCloudPageUrl = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519"
+          $publicCloudPageUrl = "https://www.microsoft.com/en-us/download/details.aspx?id=56519"
           $publicCloudDownloadPage = Invoke-WebRequest -Uri $publicCloudPageUrl -UseBasicParsing
-          $publicCloudDownloadUrl = $publicCloudDownloadPage.Links | Where-Object { $_.href -like "*ServiceTags*.json" } | Select-Object -ExpandProperty href
+          # Search for the download URL in the raw HTML using a regex pattern
+          $pattern = 'https://download\.microsoft\.com/download/[a-z0-9/-]+/ServiceTags_Public_\d+\.json'
+          # Match all occurrences
+          $matches = [regex]::Matches($publicCloudDownloadPage.Content, $pattern)
+          # Sort by date in filename (descending) to get the latest
+          $latestMatch = $matches | Sort-Object { $_.Value -replace '^.*_(\d+)\.json$', '$1' } -Descending | Select-Object -First 1
+          # Extract the URL string
+          $publicCloudDownloadUrl = $latestMatch.Value
           Invoke-WebRequest -Uri $publicCloudDownloadUrl -OutFile .\ServiceTags_Public.json -UseBasicParsing
-
-          # Validate the URL is absolute
-          # if ($downloadUrl -notmatch "^https?://") {
-          #     $downloadUrl = "https://www.microsoft.com$downloadUrl"
-          # }
-
-          # Download the JSON file
-          # Invoke-WebRequest -Uri $downloadUrl -OutFile ".\ServiceTags_Public.json" -UseBasicParsing
 
           $govCloudPageUrl = "https://www.microsoft.com/en-us/download/details.aspx?id=57063"
           $govCloudDownloadPage = Invoke-WebRequest -Uri $govCloudPageUrl -UseBasicParsing
