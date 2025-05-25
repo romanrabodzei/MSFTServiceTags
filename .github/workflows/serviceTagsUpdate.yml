@@ -3,7 +3,7 @@
 #
 # .NOTES
 #     Author     : Roman Rabodzei
-#     Version    : 1.0.240708
+#     Version    : 1.0.250525
 #
 #             _
 #         .__(.)<  (MEOW)
@@ -39,10 +39,8 @@ jobs:
           # Match all occurrences
           $matches = [regex]::Matches($publicCloudDownloadPage.Content, $pattern)
           # Sort by date in filename (descending) to get the latest
-          $latestMatch = $matches | Sort-Object { $_.Value -replace '^.*_(\d+)\.json$', '$1' } -Descending | Select-Object -First 1
-          # Extract the URL string
-          $publicCloudDownloadUrl = $latestMatch.Value
-          Invoke-WebRequest -Uri $publicCloudDownloadUrl -OutFile .\ServiceTags_Public.json -UseBasicParsing
+          $publicCloudDownloadUrl = $matches | Sort-Object { $_.Value -replace '^.*_(\d+)\.json$', '$1' } -Descending | Select-Object -First 1
+          Invoke-WebRequest -Uri $($publicCloudDownloadUrl.Value) -OutFile .\ServiceTags_Public.json -UseBasicParsing
 
           $govCloudPageUrl = "https://www.microsoft.com/en-us/download/details.aspx?id=57063"
           $govCloudDownloadPage = Invoke-WebRequest -Uri $govCloudPageUrl -UseBasicParsing
