@@ -15,53 +15,61 @@ name: Service Tags Update
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0"
 
 jobs:
   serviceTagsUpdate:
     runs-on: windows-latest
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    # Downloading files from Microsoft for Public and Government Service Tags
-    - name: Downloading files from Microsoft
-      run: |
-        Write-Host "Downloading Service Tags..."
-        $publicCloudPageUrl = "https://www.microsoft.com/en-us/download/details.aspx?id=56519"
-        $publicCloudDownloadPage = Invoke-WebRequest -Uri $publicCloudPageUrl -UseBasicParsing
-        $publicCloudDownloadUrl = $publicCloudDownloadPage.Links | Where-Object { $_.href -like "*ServiceTags*.json" } | Select-Object -ExpandProperty href
-        Invoke-WebRequest -Uri $publicCloudDownloadUrl -OutFile .\ServiceTags_Public.json -UseBasicParsing
+      # Downloading files from Microsoft for Public and Government Service Tags
+      - name: Downloading files from Microsoft
+        run: |
+          Write-Host "Downloading Service Tags..."
+          $publicCloudPageUrl = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519"
+          $publicCloudDownloadPage = Invoke-WebRequest -Uri $publicCloudPageUrl -UseBasicParsing
+          $publicCloudDownloadUrl = $publicCloudDownloadPage.Links | Where-Object { $_.href -like "*ServiceTags*.json" } | Select-Object -ExpandProperty href
+          Invoke-WebRequest -Uri $publicCloudDownloadUrl -OutFile .\ServiceTags_Public.json -UseBasicParsing
 
-        $govCloudPageUrl = "https://www.microsoft.com/en-us/download/details.aspx?id=57063"
-        $govCloudDownloadPage = Invoke-WebRequest -Uri $govCloudPageUrl -UseBasicParsing
-        $govCloudDownloadUrl = $govCloudDownloadPage.Links | Where-Object { $_.href -like "*ServiceTags*.json" } | Select-Object -ExpandProperty href
-        Invoke-WebRequest -Uri $govCloudDownloadUrl -OutFile .\ServiceTags_Gov.json -UseBasicParsing
-        Write-Host "Service Tags downloaded."
-      shell: pwsh
+          # Validate the URL is absolute
+          # if ($downloadUrl -notmatch "^https?://") {
+          #     $downloadUrl = "https://www.microsoft.com$downloadUrl"
+          # }
 
-    # Checking/Committing changes to the repository
-    - name: Checking/Committing changes
-      run: |
-        $status = git diff
-        if ($null -ne $status) {
-          Write-Host "The following changes have been made to the files...`n"
-          git diff
+          # Download the JSON file
+          # Invoke-WebRequest -Uri $downloadUrl -OutFile ".\ServiceTags_Public.json" -UseBasicParsing
 
-          Write-Host "Committing and pushing changes..."
-          git config --global user.name  "Roman Rabodzei"
-          git config --global user.email "Roman.Rabodzei@icloud.com"
-          git add .
-          git commit -m "Service Tags Update $(Get-Date -Format dd.MM.yyyy)"
-          git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" push
-        }
-        else {
-          Write-host "There are no changes."
-        }
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: pwsh
+          $govCloudPageUrl = "https://www.microsoft.com/en-us/download/details.aspx?id=57063"
+          $govCloudDownloadPage = Invoke-WebRequest -Uri $govCloudPageUrl -UseBasicParsing
+          $govCloudDownloadUrl = $govCloudDownloadPage.Links | Where-Object { $_.href -like "*ServiceTags*.json" } | Select-Object -ExpandProperty href
+          Invoke-WebRequest -Uri $govCloudDownloadUrl -OutFile .\ServiceTags_Gov.json -UseBasicParsing
+          Write-Host "Service Tags downloaded."
+        shell: pwsh
+
+      # Checking/Committing changes to the repository
+      - name: Checking/Committing changes
+        run: |
+          $status = git diff
+          if ($null -ne $status) {
+            Write-Host "The following changes have been made to the files...`n"
+            git diff
+
+            Write-Host "Committing and pushing changes..."
+            git config --global user.name  "Roman Rabodzei"
+            git config --global user.email "Roman.Rabodzei@icloud.com"
+            git add .
+            git commit -m "Service Tags Update $(Get-Date -Format dd.MM.yyyy)"
+            git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" push
+          }
+          else {
+            Write-host "There are no changes."
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
